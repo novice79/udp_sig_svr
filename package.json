@@ -1,0 +1,24 @@
+{
+  "name": "udp_sig_svr",
+  "version": "1.0.0",
+  "description": "",
+  "main": "sig.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/novice79/udp_sig_svr.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/novice79/udp_sig_svr/issues"
+  },
+  "homepage": "https://github.com/novice79/udp_sig_svr#readme",
+  "dependencies": {
+    "lodash": "^4.17.5",
+    "node-rsa": "^0.4.2"
+  }
+}
