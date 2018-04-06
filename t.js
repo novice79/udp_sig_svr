@@ -2,7 +2,7 @@ const dgram = require('dgram');
 const NodeRSA = require('node-rsa');
 const _ = require('lodash');
 const farmhash = require('farmhash');
-const bignum = require('bignum');
+
 const message = Buffer.from('\x5100000000\x00');
 
 const key = new NodeRSA();
@@ -19,10 +19,8 @@ const adb = require("./db");
         key.generateKeyPair(2048);
         const pri = key.exportKey('pkcs1-private')
         const pub = key.exportKey('pkcs1-public')
-        let hash_id = farmhash.fingerprint64(pri);
-        hash_id = bignum(hash_id).toBuffer()
-        console.log('to db', hash_id)
-        id = Buffer.from(hash_id, 'hex')
+        let hash_id = farmhash.fingerprint32(pri);
+        id = hash_id
         db.player.insert({
             pri,
             pub,

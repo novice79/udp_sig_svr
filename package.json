@@ -18,7 +18,6 @@
   },
   "homepage": "https://github.com/novice79/udp_sig_svr#readme",
   "dependencies": {
-    "bignum": "^0.12.5",
     "farmhash": "^2.0.5",
     "lodash": "^4.17.5",
     "lokijs": "^1.5.3",
