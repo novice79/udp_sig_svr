@@ -5,9 +5,11 @@ let peers = {}
 function handle_msg(pid, cmd){
     // console.log(pid, cmd)
     if(cmd == 0){
-        const selected = _.sampleSize( _.keys(peers), 500 )
-        console.log(selected)
-        peers[pid].send(selected)
+        let sps = _.sampleSize( _.keys(peers), 500 )
+        sps = _.map( sps, buf=>Buffer.from(buf, 'binary') )
+        sps.unshift( Buffer.from('\x00') )
+        // console.log(sps)
+        peers[pid].send( Buffer.concat( sps ) )
     }
 }
 server.on('error', (err) => {
@@ -15,13 +17,15 @@ server.on('error', (err) => {
     //   server.close();
 });
 
-server.on('message', (msg, rinfo) => {
+server.on('message', (buff, rinfo) => {
     // console.log(rinfo)
-    const is_valid = (msg[0] == 0x51 || msg[0] == 0x79) && msg.length >= 10 && msg.length < 1024
+    const is_valid = (buff[0] == 0x51 || buff[0] == 0x79) && buff.length >= 6 && buff.length < 1024
     if( !is_valid ) return
 
-    const pid = msg.slice(1, 9);
-    const cmd = msg[9]
+    let pid = buff.slice(1, 5);
+    // console.log('pid=',pid)
+    const cmd = buff[5]
+    pid = pid.toString('binary')
     if(peers[pid]){
         clearTimeout( peers[pid].tm)
     }
@@ -30,12 +34,12 @@ server.on('message', (msg, rinfo) => {
             delete peers[pid]
             // console.log('clear inactive peer')
         }, 5*60*1000),
-        send:msg=>{
-            server.send(msg, rinfo.port, rinfo.address)
+        send:buff=>{
+            server.send(buff, rinfo.port, rinfo.address)
         }
     }
     handle_msg(pid, cmd)
-    // console.log(`server got: ${msg} from ${rinfo.address}:${rinfo.port}`);
+    // console.log(`server got: ${buff} from ${rinfo.address}:${rinfo.port}`);
 });
 
 server.on('listening', () => {
