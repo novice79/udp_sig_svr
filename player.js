@@ -13,9 +13,11 @@ class Player {
     }
     on_self_signal(sig) {
         const payload = {
-            
+            cmd: 1,
+            data: sig,
+            initiator: this.self_id
         }
-        const pack = Buffer.concat( [util.cb(this.self_id, 1), Buffer.from(sig)] )
+        const pack = Buffer.concat( [util.cb(this.self_id, 1), this.tid, Buffer.from(JSON.stringify(payload) )] )
         this.udp.send(pack, 1979, 'localhost')
     } 
     on_target_signal(sig) {
