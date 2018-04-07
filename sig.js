@@ -1,15 +1,27 @@
 const dgram = require('dgram');
 const server = dgram.createSocket('udp4');
 const _ = require('lodash');
-let peers = {}
-function handle_msg(pid, cmd){
+const util = require("./util");
+let peers = {};
+function handle_msg(pid, cmd, data) {
     // console.log(pid, cmd)
-    if(cmd == 0){
-        let sps = _.sampleSize( _.keys(peers), 500 )
-        sps = _.map( sps, buf=>Buffer.from(buf, 'binary') )
-        sps.unshift( Buffer.from('\x00') )
-        // console.log(sps)
-        peers[pid].send( Buffer.concat( sps ) )
+    switch (cmd) {
+        case 0:
+            let sps = _.sampleSize(_.keys(peers), 500)
+            sps = _.map(sps, buf => Buffer.from(buf, 'binary'))
+            sps.unshift(Buffer.from('\x00'))
+            // console.log(sps)
+            peers[pid].send(Buffer.concat(sps))
+            break;
+        case 1:
+            const tid = util.b2s( data.slice(0, 4) )
+            const target_peer = peers[tid]
+            if( target_peer ){
+                const buf = data.slice(3)
+                buf[0] = 1;
+                target_peer.send(buf)
+            }
+            break;    
     }
 }
 server.on('error', (err) => {
@@ -20,25 +32,26 @@ server.on('error', (err) => {
 server.on('message', (buff, rinfo) => {
     // console.log(rinfo)
     const is_valid = (buff[0] == 0x51 || buff[0] == 0x79) && buff.length >= 6 && buff.length < 1024
-    if( !is_valid ) return
+    if (!is_valid) return
 
     let pid = buff.slice(1, 5);
     // console.log('pid=',pid)
     const cmd = buff[5]
+    const data = buff.slice(6);    
     pid = pid.toString('binary')
-    if(peers[pid]){
-        clearTimeout( peers[pid].tm)
+    if (peers[pid]) {
+        clearTimeout(peers[pid].tm)
     }
     peers[pid] = {
-        tm: setTimeout(()=>{
+        tm: setTimeout(() => {
             delete peers[pid]
             // console.log('clear inactive peer')
-        }, 5*60*1000),
-        send:buff=>{
+        }, 5 * 60 * 1000),
+        send: buff => {
             server.send(buff, rinfo.port, rinfo.address)
         }
     }
-    handle_msg(pid, cmd)
+    handle_msg(pid, cmd, data)
     // console.log(`server got: ${buff} from ${rinfo.address}:${rinfo.port}`);
 });
 
