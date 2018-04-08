@@ -24,6 +24,12 @@ function handle_msg(pid, cmd, data) {
             break;    
     }
 }
+
+process.on('uncaughtException', err=> {
+    // console.log('Caught exception: ', err);
+    console.error('Caught exception: ', err);
+});
+
 server.on('error', (err) => {
     console.log(`server error:\n${err.stack}`);
     //   server.close();
@@ -31,9 +37,11 @@ server.on('error', (err) => {
 
 server.on('message', (buff, rinfo) => {
     // console.log(rinfo)
-    const is_valid = (buff[0] == 0x51 || buff[0] == 0x79) && buff.length >= 6 && buff.length < 1024
+    const is_valid = (buff[0] == 0x51 || buff[0] == 0x79) && buff.length >= 6 && buff.length < 2048
     if (!is_valid) return
-
+    if(buff.length > 1024){
+        console.log(buff.length)
+    }
     let pid = buff.slice(1, 5);
     // console.log('pid=',pid)
     const cmd = buff[5]
@@ -46,7 +54,7 @@ server.on('message', (buff, rinfo) => {
         tm: setTimeout(() => {
             delete peers[pid]
             // console.log('clear inactive peer')
-        }, 5 * 60 * 1000),
+        }, 1 * 60 * 1000),
         send: buff => {
             server.send(buff, rinfo.port, rinfo.address)
         }

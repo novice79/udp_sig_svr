@@ -15,6 +15,11 @@ function ui2b(i) {
     buf.writeUInt32BE(i)
     return buf
 }
+function ui2s(i) {
+    const buf = Buffer.alloc(4);
+    buf.writeUInt32BE(i)
+    return b2s(buf)
+}
 function b2ui(buf) {
     return buf.readUInt32BE(0)
 }
@@ -57,6 +62,7 @@ module.exports = {
     cb,
     ui2b,
     b2ui,
+    ui2s,
     enc_str,
     dec_str,
     enc_buff,

@@ -15,7 +15,7 @@ let myid;
 (async () => {
     const db = await adb
     const key_data = db.player.findOne({});
-    
+
     if (key_data) {
         key.importKey(key_data.pri, 'pkcs1');
         myid = key_data.hash_id
@@ -58,18 +58,37 @@ function handle_msg(cmd, data) {
             console.log(peers)
             _.each(peers, tid => {
                 tid = Buffer.from(tid)
-                if( myid == util.b2ui(tid) ) {
-                    console.log('filter out myself from peers')
+                if (myid == util.b2ui(tid)) {
+                    // console.log('filter out myself from peers')
                     return;
                 }
                 const pid = util.b2s(tid)
-                players[pid] = new Player(udp, myid, tid, players)
+                players[pid] = new Player(udp, myid, tid, players, true)
             })
             break;
         case 1:
-            let json_data = util.dec_str( util.b2s(data), util.ui2b(myid) )
+            let json_data = util.b2s(data)
+            // json_data = util.dec_str(json_data, util.ui2b(myid))
             json_data = JSON.parse(json_data)
-            console.log(json_data)
+            // console.log(json_data)
+            switch (json_data.cmd) {
+                case 1:
+                    {
+                        const tid = util.ui2b(json_data.source)
+                        const pid = util.b2s(tid)
+                        players[pid] = new Player(udp, myid, tid, players, false)
+                        players[pid].on_target_signal(json_data.data)
+                    }
+                    break;
+                case 2:
+                    {
+                        // console.log(json_data)
+                        const tid = util.ui2b(json_data.source)
+                        const pid = util.b2s(tid)
+                        players[pid] && players[pid].on_target_signal(json_data.data)
+                    }
+                    break;
+            }
             break;
     }
     // udp.close();
