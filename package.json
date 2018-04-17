@@ -18,6 +18,7 @@
   },
   "homepage": "https://github.com/novice79/udp_sig_svr#readme",
   "dependencies": {
+    "auto-bind-inheritance": "^1.0.6",
     "farmhash": "^2.0.5",
     "is-buffer": "^2.0.2",
     "lodash": "^4.17.5",

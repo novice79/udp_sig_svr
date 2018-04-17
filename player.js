@@ -3,8 +3,11 @@ const Peer = require('simple-peer')
 const wrtc = require('wrtc')
 const isBuffer = require('is-buffer')
 const util = require("./util");
+const PStream = require("./pstream");
+const autoBindI = require('auto-bind-inheritance');
 class Player {
     constructor(udp, self_id, tid, players, initiator) {
+        autoBindI(this);
         this.initiator = initiator
         this.udp = udp
         this.self_id = self_id
@@ -33,6 +36,12 @@ class Player {
         this.peer.on('signal', this.on_self_signal.bind(this))
         this.peer.on('connect', this.on_peer_connect.bind(this))
         this.peer.on('data', this.on_peer_data.bind(this))
+        // this.peer.on('data', this.test.bind(this))
+        this.peer.on('close', this.on_peer_close.bind(this))
+        this.pstream = new PStream(this.peer);
+    }
+    test(data){
+        console.log('on_test', data)
     }
     on_self_signal(sig) {
         const payload = {
@@ -53,12 +62,25 @@ class Player {
     on_peer_connect() {
         console.log('on peer connected')
         // const data = fs.readFileSync('./design.txt')
+        const fn = "d:/aaa.mp4";
+        const stats = fs.statSync(fn)
+        let ss = fs.createReadStream(fn, { highWaterMark: 1024})
+        let ps = this.pstream.wStream('test', stats.size);
+        ps.on('progress', progress=>{
+            console.log(`progress:${progress}`)
+        })
+        ss.pipe( ps );
+        // var myFile = fs.createWriteStream("bbb.mp4");
+        // this.pstream.rStream('test').pipe(myFile)
         // this.peer.send(data)
+        // this.peer.send('david')
+    }
+    on_peer_close() {
+        console.log('on peer on_peer_close')
     }
     on_peer_data(data) {
-        // console.log('on peer data', data)
-        var myFile = fs.createWriteStream("myOutput.txt");
-        this.peer.pipe(myFile)
+        // console.log('on_peer_data', data)
+        
         // fs.writeFileSync('./aaa.txt', data)
     }
 }
