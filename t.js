@@ -9,9 +9,23 @@ const Player = require("./player");
 const util = require("./util");
 
 const udp = dgram.createSocket('udp4');
+const server_name = 'localhost';
+udp.post = (buff)=>{
+    udp.send(buff, 1979, server_name, (err) => {
+
+    });
+}
 const players = {};
 
 let myid;
+function heart_beat(){
+    const span = _.random(10, 59) * 1000;
+    setTimeout(()=>{
+        const ping = Buffer.from('\x510000\x04');
+        ping.writeUInt32BE(myid, 1)
+        udp.post(ping);
+    }, span)    
+}
 (async () => {
     const db = await adb
     const key_data = db.player.findOne({});
@@ -36,9 +50,7 @@ let myid;
 
     const message = Buffer.from('\x510000\x00');
     message.writeUInt32BE(myid, 1)
-    udp.send(message, 1979, 'localhost', (err) => {
-        //   udp.close();
-    });
+    udp.post(message);
     udp.on('message', (buff, rinfo) => {
         // console.log(buff)
         const cmd = buff[0]
@@ -65,6 +77,7 @@ function handle_msg(cmd, data) {
                 const pid = util.b2s(tid)
                 players[pid] = new Player(udp, myid, tid, players, true)
             })
+            heart_beat()
             break;
         case 1:
             let json_data = util.b2s(data)
@@ -90,6 +103,11 @@ function handle_msg(cmd, data) {
                     break;
             }
             break;
+        case 4:
+            const count = data.readUInt32BE(0);
+            heart_beat();
+            console.log('online player:'+count);
+            break;    
     }
     // udp.close();
 }

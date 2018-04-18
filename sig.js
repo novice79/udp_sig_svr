@@ -22,6 +22,14 @@ function handle_msg(pid, cmd, data) {
                 target_peer.send(buf)
             }
             break;    
+        case 4:
+            const peer = peers[pid];
+            const buf = Buffer.alloc(5);
+            buf[0] = 4;
+            const count = _.size(peers)
+            buf.writeUInt32BE(count, 1);
+            peer.send(buf);
+            break;     
     }
 }
 

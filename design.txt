@@ -12,3 +12,6 @@
 
 //one to all
 |0x51|4bytes hash|3|data generally json str|
+
+//heartbeat
+|0x51|4bytes hash|4|
